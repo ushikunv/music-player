@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <item android:id="@+id/currentPlaying"
+        android:title="Playing"
+        app:showAsAction="never"/>
+    <item android:id="@+id/artistsButton"
+        android:title="Artists"
+        app:showAsAction="never"/>
+    <item android:id="@+id/albumsButton"
+        android:title="Alubums"
+        app:showAsAction="never"/>
+    <item android:id="@+id/playlistsButton"
+        android:title="Playlists"
+        app:showAsAction="never"/>
+    <item android:id="@+id/reset"
+        android:title="RandomAll"
+        app:showAsAction="never"/>
+
+
+    <!--<item android:id="@+id/action0"-->
+        <!--android:title="action_settings"-->
+        <!--app:showAsAction="never"/>-->
+    <!--<item android:id="@+id/action2"-->
+        <!--android:title="action_settings"-->
+        <!--app:showAsAction="never"/>-->
+    <!--<item android:id="@+id/action3"-->
+        <!--android:title="action_settings"-->
+        <!--app:showAsAction="never"/>-->
+
+
+
+
+</menu>
