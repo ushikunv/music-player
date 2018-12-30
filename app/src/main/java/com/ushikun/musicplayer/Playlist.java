@@ -25,14 +25,13 @@ public class Playlist {
         }
     }
 
-    byte[] getByteData(){
-        List<Byte>byteList = new ArrayList<>();
-        byteList.add(ids.get(0).byteValue());
-        Byte[] bytes = new Byte[byteList.size()];
-        byteList.toArray(bytes);
-        byte[] a = ArrayUti
-
-        return ;
+//    byte[] getByteData(){
+//        List<Byte>byteList = new ArrayList<>();
+//        byteList.add(ids.get(0).byteValue());
+//
+//        return ;
+//    }
+    void test(){
     }
 
 }

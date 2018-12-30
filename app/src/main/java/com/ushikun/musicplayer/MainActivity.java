@@ -80,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
         playlists.add(new Playlist());
         playlists.add(new Playlist());
         try {
-            FileOutputStream fos = openFileOutput("test", Context.MODE_PRIVATE);
-            fos.write(playlists.get(0).ids.get(0).byteValue());
-            fos.close();
+//            FileOutputStream fos = openFileOutput("test", Context.MODE_PRIVATE);
+//            fos.write(playlists.get(0).ids.get(0).byteValue());
+//            fos.close();
         }catch (Exception e){
 
         }
