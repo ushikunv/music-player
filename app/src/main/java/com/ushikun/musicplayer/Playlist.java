@@ -25,12 +25,12 @@ public class Playlist {
         }
     }
 
-//    byte[] getByteData(){
-//        List<Byte>byteList = new ArrayList<>();
-//        byteList.add(ids.get(0).byteValue());
-//
-//        return ;
-//    }
+   byte[] getByteData(){
+       List<Byte>byteList = new ArrayList<>();
+       byteList.add(ids.get(0).toSting().getBytes());
+       byte[] returnBytes = byteList.get(0).byteValue();
+       return returnBytes;
+   }
     void test(){
     }
 
