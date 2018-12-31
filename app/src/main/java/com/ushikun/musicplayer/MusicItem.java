@@ -67,7 +67,6 @@ public class MusicItem implements Comparable<Object> {
                 int idTruck = cur.getColumnIndex(MediaStore.Audio.Media.TRACK);
                 int dataColmun = cur.getColumnIndex(MediaStore.Audio.AudioColumns.DATA);
 
-
                 // リストに追加
                 do {
                     try {

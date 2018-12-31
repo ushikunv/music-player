@@ -12,6 +12,7 @@ public class Playlist {
     String name;
     static int playlistNum = 0;
     int id;
+
     Playlist() {
         ids = new ArrayList<>();
         name = "Playlist "+playlistNum+" ";
@@ -26,12 +27,19 @@ public class Playlist {
     }
 
    byte[] getByteData(){
-       List<Byte>byteList = new ArrayList<>();
-       byteList.add(ids.get(0).toSting().getBytes());
-       byte[] returnBytes = byteList.get(0).byteValue();
-       return returnBytes;
+        byte[] bytes = new byte[ids.size()*2];
+       for(int i = 0;i<ids.size();i++) {
+           bytes[2*i] = (byte) ids.get(i).longValue();
+           bytes[2*i+1] = (byte) (ids.get(i).longValue() >> 8);
+       }
+       return bytes;
    }
-    void test(){
-    }
+
+   void setByteData(byte[] bytes){
+       int mask = 255;
+       for(int i = 0;i<bytes.length/2;i++){
+           ids.add((long) (bytes[2*i] & mask | (bytes[2*i+1] << 8)));
+       }
+   }
 
 }

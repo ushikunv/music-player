@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,6 +26,7 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,18 +76,25 @@ public class MainActivity extends AppCompatActivity {
         artists = new ArrayList<>();
         albums = new ArrayList<>();
 
+        //プレイリストを暫定的に4つ
         playlists = new ArrayList<>();
         playlists.add(new Playlist());
         playlists.add(new Playlist());
         playlists.add(new Playlist());
         playlists.add(new Playlist());
-        try {
-//            FileOutputStream fos = openFileOutput("test", Context.MODE_PRIVATE);
-//            fos.write(playlists.get(0).ids.get(0).byteValue());
-//            fos.close();
-        }catch (Exception e){
 
+        //保存してあるプレイリストを読み込む（テスト
+        try {
+            FileInputStream fos = openFileInput("Playlist1");
+            int length = fos.available();
+            byte[] bytes = new byte[length];
+            fos.read(bytes);
+            fos.close();
+            playlists.get(0).setByteData(bytes);
+        }catch (Exception e){
         }
+
+
 
         //初期化
         playingList = new LinkedList<MusicItem>();
@@ -312,6 +321,13 @@ public class MainActivity extends AppCompatActivity {
             playlists.get(position).addToList(playingList.get(playingPosition).id);
             setPlayer();
             updateTitle();
+            //プレイリストを保存
+            try {
+                FileOutputStream fos = openFileOutput("Playlist1", Context.MODE_PRIVATE);
+                fos.write(playlists.get(0).getByteData());
+                fos.close();
+            }catch (Exception e){
+            }
         }
     };
 
