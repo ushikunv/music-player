@@ -10,20 +10,21 @@ import java.util.List;
 public class Playlist {
     List<Long> ids;
     String name;
-    static int playlistNum = 0;
-    int id;
 
-    Playlist() {
+
+    Playlist(String title) {
         ids = new ArrayList<>();
-        name = "Playlist "+playlistNum+" ";
-        id = playlistNum;
-        playlistNum++;
+        name = title;
     }
 
     void addToList(long id) {
         if(!ids.contains(id)) {
             ids.add(id);
         }
+    }
+
+    void clearList(){
+        ids.clear();
     }
 
    byte[] getByteData(){

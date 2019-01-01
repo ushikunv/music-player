@@ -78,20 +78,22 @@ public class MainActivity extends AppCompatActivity {
 
         //プレイリストを暫定的に4つ
         playlists = new ArrayList<>();
-        playlists.add(new Playlist());
-        playlists.add(new Playlist());
-        playlists.add(new Playlist());
-        playlists.add(new Playlist());
+        playlists.add(new Playlist("Playlist0"));
+        playlists.add(new Playlist("Playlist1"));
+        playlists.add(new Playlist("Playlist2"));
+        playlists.add(new Playlist("Playlist3"));
 
         //保存してあるプレイリストを読み込む（テスト
-        try {
-            FileInputStream fos = openFileInput("Playlist1");
-            int length = fos.available();
-            byte[] bytes = new byte[length];
-            fos.read(bytes);
-            fos.close();
-            playlists.get(0).setByteData(bytes);
-        }catch (Exception e){
+        for(int i =0;i<4;i++) {
+            try {
+                  FileInputStream fos = openFileInput("Playlist"+i);
+                int length = fos.available();
+                byte[] bytes = new byte[length];
+                fos.read(bytes);
+                fos.close();
+                playlists.get(0).setByteData(bytes);
+            } catch (Exception e) {
+            }
         }
 
 
@@ -204,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
         listView.setAdapter(adapterPlaylists);
         listView.setOnItemClickListener(playlistsMessageClickedHandler);
+        listView.setOnItemLongClickListener(playlistsMessageLongClickedHandler);
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -323,11 +326,25 @@ public class MainActivity extends AppCompatActivity {
             updateTitle();
             //プレイリストを保存
             try {
-                FileOutputStream fos = openFileOutput("Playlist1", Context.MODE_PRIVATE);
-                fos.write(playlists.get(0).getByteData());
+                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
+                fos.write(playlists.get(position).getByteData());
                 fos.close();
             }catch (Exception e){
             }
+        }
+    };
+
+    private AdapterView.OnItemLongClickListener playlistsMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
+        public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
+            playlists.get(position).clearList();
+            //プレイリストを保存
+            try {
+                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
+                fos.write(playlists.get(position).getByteData());
+                fos.close();
+            }catch (Exception e){
+            }
+            return true;
         }
     };
 
