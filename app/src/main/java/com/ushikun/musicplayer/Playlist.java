@@ -10,11 +10,13 @@ import java.util.List;
 public class Playlist {
     List<Long> ids;
     String name;
+    int id=0;
 
 
     Playlist(String title) {
         ids = new ArrayList<>();
         name = title;
+        id++;
     }
 
     void addToList(long id) {

@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int ALBUMS_SELECTED = 1;
     public static final int PLAYLIST_SELECTED = 2;
     static List<Playlist> playlists;
+    static boolean firstOnCreateBool = true;
 
     // BroadcastReceiver
     private BroadcastReceiver mReceiver;
@@ -71,10 +72,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         //ストレージへのアクセスとキーガードのpermissionを取る
         permission();
-        //MusicItem.getItemsで音楽ファイルを取得する際にartistのリストも取得する
-        //そのために初期化しておく
-        artists = new ArrayList<>();
-        albums = new ArrayList<>();
 
         //プレイリストを暫定的に4つ
         playlists = new ArrayList<>();
@@ -97,28 +94,33 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        if(firstOnCreateBool) {
+            //MusicItem.getItemsで音楽ファイルを取得する際にartistのリストも取得する
+            //そのために初期化しておく
+            artists = new ArrayList<>();
+            albums = new ArrayList<>();
+            //初期化
+            playingList = new LinkedList<MusicItem>();
+            selectingList = new LinkedList<MusicItem>();
+            //ストレージから音楽ファイルを取得
+            mItems = MusicItem.getItems(getApplicationContext());
+            //プレイリスト(現在再生しているリスト)に追加
+            playingList.addAll(mItems);
+            //ランダムにシャッフル
+            Collections.shuffle(playingList);
+            //artistリストをソート
+            Collections.sort(artists);
+            Collections.sort(albums);
+            //リストとして表示するためにlistviewとadapaterを設定、artistのリストを表示
+            listView = findViewById(R.id.listView);
+            adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, artists);
+            listView.setAdapter(adapterArtists);
+            //クリックリスナー
+            listView.setOnItemClickListener(artistsMessageClickedHandler);
 
-        //初期化
-        playingList = new LinkedList<MusicItem>();
-        selectingList = new LinkedList<MusicItem>();
-        //ストレージから音楽ファイルを取得
-        mItems = MusicItem.getItems(getApplicationContext());
-        //プレイリスト(現在再生しているリスト)に追加
-        playingList.addAll(mItems);
-        //ランダムにシャッフル
-        Collections.shuffle(playingList);
-        //artistリストをソート
-        Collections.sort(artists);
-        Collections.sort(albums);
-        //リストとして表示するためにlistviewとadapaterを設定、artistのリストを表示
-        listView = findViewById(R.id.listView);
-        adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, artists);
-        listView.setAdapter(adapterArtists);
-        //クリックリスナー
-        listView.setOnItemClickListener(artistsMessageClickedHandler);
-
-        initMediaPlayer();
-
+            initMediaPlayer();
+            firstOnCreateBool = false;
+        }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
@@ -186,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, artists);
         listView.setAdapter(adapterArtists);
         listView.setOnItemClickListener(artistsMessageClickedHandler);
+        listView.setOnItemLongClickListener(artistsAddToPlaylistMessageLongClickedHandler);
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -196,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, albums);
         listView.setAdapter(adapterArtists);
         listView.setOnItemClickListener(albumsMessageClickedHandler);
+        listView.setOnItemLongClickListener(albumsAddToPlaylistMessageLongClickedHandler);
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -219,6 +223,27 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(addToPlaylistMessageClickedHandler);
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
+
+    void setListToAddToPlaylist2() {
+        setContentView(R.layout.activity_main);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        listView = findViewById(R.id.listView);
+        adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
+        listView.setAdapter(adapterPlaylists);
+        listView.setOnItemClickListener(artistAddToPlaylistMessageClickedHandler);
+        listView.setSelectionFromTop(selectiongPosition, 0);
+    }
+
+    void setListToAddToPlaylist3() {
+        setContentView(R.layout.activity_main);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        listView = findViewById(R.id.listView);
+        adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
+        listView.setAdapter(adapterPlaylists);
+        listView.setOnItemClickListener(albumAddToPlaylistMessageClickedHandler);
+        listView.setSelectionFromTop(selectiongPosition, 0);
+    }
+
 
     void setListToCurentList() {
         setContentView(R.layout.activity_main);
@@ -250,6 +275,38 @@ public class MainActivity extends AppCompatActivity {
             selectiongPosition = position;
         }
     };
+    private AdapterView.OnItemLongClickListener artistsAddToPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
+        public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
+            selectingList.clear();
+
+            for (int i = 0; i < mItems.size(); i++) {
+                if (mItems.get(i).artist.equals(artists.get(position))) {
+                    selectingList.add(mItems.get(i));
+                }
+            }
+            setListToAddToPlaylist2();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            selectiongPosition = position;
+            return true;
+        }
+    };
+
+    private AdapterView.OnItemLongClickListener albumsAddToPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
+        public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
+            selectingList.clear();
+
+            for (int i = 0; i < mItems.size(); i++) {
+                if (mItems.get(i).album.equals(albums.get(position))) {
+                    selectingList.add(mItems.get(i));
+                }
+            }
+            setListToAddToPlaylist3();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            selectiongPosition = position;
+            return true;
+        }
+    };
+
 
     private AdapterView.OnItemClickListener albumsMessageClickedHandler = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView parent, View v, int position, long id) {
@@ -331,6 +388,40 @@ public class MainActivity extends AppCompatActivity {
                 fos.close();
             }catch (Exception e){
             }
+        }
+    };
+
+    private AdapterView.OnItemClickListener artistAddToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView parent, View v, int position, long id) {
+            for(int i = 0;i<selectingList.size();i++){
+                playlists.get(position).addToList(selectingList.get(i).id);
+            }
+            //プレイリストを保存
+            try {
+                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
+                fos.write(playlists.get(position).getByteData());
+                fos.close();
+            }catch (Exception e){
+            }
+
+            setListToArtists();
+        }
+    };
+
+    private AdapterView.OnItemClickListener albumAddToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView parent, View v, int position, long id) {
+            for(int i = 0;i<selectingList.size();i++){
+                playlists.get(position).addToList(selectingList.get(i).id);
+            }
+            //プレイリストを保存
+            try {
+                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
+                fos.write(playlists.get(position).getByteData());
+                fos.close();
+            }catch (Exception e){
+            }
+
+            setListToAlbums();
         }
     };
 

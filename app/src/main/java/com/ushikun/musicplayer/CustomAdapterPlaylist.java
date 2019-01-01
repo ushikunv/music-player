@@ -21,6 +21,7 @@ public class CustomAdapterPlaylist extends BaseAdapter{
     private List<Playlist> mObject;
 
 
+
     CustomAdapterPlaylist(Context context, int resource, List<Playlist> objects) {
         mContext = context;
         mInflater = LayoutInflater.from(context);
