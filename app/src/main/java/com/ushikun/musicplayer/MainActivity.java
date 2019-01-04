@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -36,11 +37,12 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     List<MusicItem> mItems;
-    static ArrayList<String> artists;
-    static ArrayList<String> albums;
+    static List<String> artists;
+    static List<String> albums;
     List<MusicItem> playingList;
     List<MusicItem> selectingList;
     ListView listView;
+    BaseAdapter baseAdapter;
     ListView listView2;
     CustomAdapter adapter;
     CustomAdapterArtists adapterArtists;
@@ -57,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
     public static final int ARTISTS_SELECTED = 0;
     public static final int ALBUMS_SELECTED = 1;
     public static final int PLAYLIST_SELECTED = 2;
+    public static final int RANDOM_SELECTED = 3;
     static List<Playlist> playlists;
     static boolean firstOnCreateBool = true;
+    static int currentPlaylistNum =0;
 
     // BroadcastReceiver
     private BroadcastReceiver mReceiver;
@@ -111,12 +115,8 @@ public class MainActivity extends AppCompatActivity {
             //artistリストをソート
             Collections.sort(artists);
             Collections.sort(albums);
-            //リストとして表示するためにlistviewとadapaterを設定、artistのリストを表示
-            listView = findViewById(R.id.listView);
-            adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, artists);
-            listView.setAdapter(adapterArtists);
-            //クリックリスナー
-            listView.setOnItemClickListener(artistsMessageClickedHandler);
+
+            setListToArtists();
 
             initMediaPlayer();
             firstOnCreateBool = false;
@@ -181,14 +181,46 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     void setListToArtists() {
         setContentView(R.layout.activity_main);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         listView = findViewById(R.id.listView);
         adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, artists);
         listView.setAdapter(adapterArtists);
-        listView.setOnItemClickListener(artistsMessageClickedHandler);
-        listView.setOnItemLongClickListener(artistsAddToPlaylistMessageLongClickedHandler);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                        //selectingListを初期化
+                        selectingList.clear();
+                        for (int i = 0; i < mItems.size(); i++) {
+                            if (mItems.get(i).artist.equals(artists.get(position))) {
+                                selectingList.add(mItems.get(i));
+                            }
+                        }
+                        //リストの表示を新しいselectingListに変更
+                        setListToCurentList();
+                        //artistから曲へひとつ深い階層にいくので戻るボタンを表示
+                        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                        selectiongPosition = position;
+            }
+        });
+        //長押しでプレイリストに追加
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+            public boolean onItemLongClick(AdapterView parent,View v,int position,long id){
+                selectingList.clear();
+                for (int i = 0; i < mItems.size(); i++) {
+                    if (mItems.get(i).artist.equals(artists.get(position))) {
+                        selectingList.add(mItems.get(i));
+                    }
+                }
+                setListToAddToPlaylist();
+                listView.setOnItemClickListener(addListToPlaylistMessageClickedHandler);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                selectiongPosition = position;
+                return true;
+            }
+        });
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -198,8 +230,41 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         adapterArtists = new CustomAdapterArtists(getApplicationContext(), R.layout.textview, albums);
         listView.setAdapter(adapterArtists);
-        listView.setOnItemClickListener(albumsMessageClickedHandler);
-        listView.setOnItemLongClickListener(albumsAddToPlaylistMessageLongClickedHandler);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                //selectingListを初期化
+                selectingList.clear();
+
+                for (int i = 0; i < mItems.size(); i++) {
+                    if (mItems.get(i).album.equals(albums.get(position))) {
+                        selectingList.add(mItems.get(i));
+                    }
+                }
+                //リストの表示を新しいselectingListに変更
+                setListToCurentList();
+
+                //artistから曲へひとつ深い階層にいくので戻るボタンを表示
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                selectiongPosition = position;
+            }
+        });
+        //長押しでプレイリストに追加
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+            public boolean onItemLongClick(AdapterView parent,View v,int position,long id){
+                selectingList.clear();
+
+                for (int i = 0; i < mItems.size(); i++) {
+                    if (mItems.get(i).album.equals(albums.get(position))) {
+                        selectingList.add(mItems.get(i));
+                    }
+                }
+                setListToAddToPlaylist();
+                listView.setOnItemClickListener(addListToPlaylistMessageClickedHandler);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                selectiongPosition = position;
+                return true;
+            }
+        });
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -209,8 +274,36 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
         listView.setAdapter(adapterPlaylists);
-        listView.setOnItemClickListener(playlistsMessageClickedHandler);
-        listView.setOnItemLongClickListener(playlistsMessageLongClickedHandler);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                //selectingListを初期化
+                selectingList.clear();
+                for (int i = 0; i < mItems.size(); i++) {
+                    if (playlists.get(position).ids.contains(mItems.get(i).id)) {
+                        selectingList.add(mItems.get(i));
+                    }
+                }
+                currentPlaylistNum=position;
+                //リストの表示を新しいselectingListに変更
+                setListToCurentList();
+                //artistから曲へひとつ深い階層にいくので戻るボタンを表示
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            }
+        });
+        //長押しでプレイリストを初期化
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+            public boolean onItemLongClick(AdapterView parent,View v,int position,long id){
+                //playlistをクリアして保存
+                playlists.get(position).clearList();
+                try {
+                    FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
+                    fos.write(playlists.get(position).getByteData());
+                    fos.close();
+                }catch (Exception e){
+                }
+                return true;
+            }
+        });
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
 
@@ -220,121 +313,45 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
         listView.setAdapter(adapterPlaylists);
-        listView.setOnItemClickListener(addToPlaylistMessageClickedHandler);
         listView.setSelectionFromTop(selectiongPosition, 0);
     }
-
-    void setListToAddToPlaylist2() {
-        setContentView(R.layout.activity_main);
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        listView = findViewById(R.id.listView);
-        adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
-        listView.setAdapter(adapterPlaylists);
-        listView.setOnItemClickListener(artistAddToPlaylistMessageClickedHandler);
-        listView.setSelectionFromTop(selectiongPosition, 0);
-    }
-
-    void setListToAddToPlaylist3() {
-        setContentView(R.layout.activity_main);
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        listView = findViewById(R.id.listView);
-        adapterPlaylists= new CustomAdapterPlaylist(getApplicationContext(), R.layout.textview, playlists);
-        listView.setAdapter(adapterPlaylists);
-        listView.setOnItemClickListener(albumAddToPlaylistMessageClickedHandler);
-        listView.setSelectionFromTop(selectiongPosition, 0);
-    }
-
 
     void setListToCurentList() {
+        //selectingListを表示する
         setContentView(R.layout.activity_main);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         listView = findViewById(R.id.listView);
         adapter = new CustomAdapter(getApplicationContext(), R.layout.textview, selectingList);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(mMessageClickedHandler);
+        //選択したら再生するClickListener
+        listView.setOnItemClickListener(currentListClickedHandler);
+        if(selectedList == PLAYLIST_SELECTED) {
+            listView.setOnItemLongClickListener(removeFromPlaylistMessageLongClickedHandler);
+        }
+        final Button shuffle = findViewById(R.id.shuffle);
+        shuffle.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Collections.shuffle(selectingList);
+                setListToCurentList();
+                if(! (selectedList==RANDOM_SELECTED)) {
+                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                }
+            }
+        });
+        shuffle.setVisibility(View.VISIBLE);
     }
 
 
 
-    // Create a message handling object as an anonymous class.
-    private AdapterView.OnItemClickListener artistsMessageClickedHandler = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView parent, View v, int position, long id) {
-            //selectingListを初期化
-            selectingList.clear();
 
-            for (int i = 0; i < mItems.size(); i++) {
-                if (mItems.get(i).artist.equals(artists.get(position))) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
-            //リストの表示を新しいselectingListに変更
-            setListToCurentList();
-
-            //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            selectiongPosition = position;
-        }
-    };
-    private AdapterView.OnItemLongClickListener artistsAddToPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
-        public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
-            selectingList.clear();
-
-            for (int i = 0; i < mItems.size(); i++) {
-                if (mItems.get(i).artist.equals(artists.get(position))) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
-            setListToAddToPlaylist2();
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            selectiongPosition = position;
-            return true;
-        }
-    };
-
-    private AdapterView.OnItemLongClickListener albumsAddToPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
-        public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
-            selectingList.clear();
-
-            for (int i = 0; i < mItems.size(); i++) {
-                if (mItems.get(i).album.equals(albums.get(position))) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
-            setListToAddToPlaylist3();
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            selectiongPosition = position;
-            return true;
-        }
-    };
-
-
-    private AdapterView.OnItemClickListener albumsMessageClickedHandler = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView parent, View v, int position, long id) {
-            //selectingListを初期化
-            selectingList.clear();
-
-            for (int i = 0; i < mItems.size(); i++) {
-                if (mItems.get(i).album.equals(albums.get(position))) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
-            //リストの表示を新しいselectingListに変更
-            setListToCurentList();
-
-            //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            selectiongPosition = position;
-        }
-    };
-
-    private AdapterView.OnItemClickListener mMessageClickedHandler = new AdapterView.OnItemClickListener() {
+    private AdapterView.OnItemClickListener currentListClickedHandler = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView parent, View v, int position, long id) {
             if (playingList.equals(selectingList) && playingPosition == position) {
                 mediaPlayer.start();
             } else {
-                playingList.clear();
-                playingList.addAll(selectingList);
                 try {
+                    playingList.clear();
+                    playingList.addAll(selectingList);
                     mediaPlayer.release();
                     mediaPlayer = new MediaPlayer();
                     mediaPlayer.setDataSource(getApplicationContext(), playingList.get(position).getURI());
@@ -357,41 +374,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    private AdapterView.OnItemClickListener playlistsMessageClickedHandler = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView parent, View v, int position, long id) {
-            //selectingListを初期化
-            selectingList.clear();
-
-            for (int i = 0; i < mItems.size(); i++) {
-                if (playlists.get(position).ids.contains(mItems.get(i).id)) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
-            //リストの表示を新しいselectingListに変更
-            setListToCurentList();
-
-            //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-    };
-
-    private AdapterView.OnItemClickListener addToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView parent, View v, int position, long id) {
-            playlists.get(position).addToList(playingList.get(playingPosition).id);
-            setPlayer();
-            updateTitle();
-            //プレイリストを保存
-            try {
-                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
-                fos.write(playlists.get(position).getByteData());
-                fos.close();
-            }catch (Exception e){
-            }
-        }
-    };
-
-    private AdapterView.OnItemClickListener artistAddToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
+    private AdapterView.OnItemClickListener addListToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView parent, View v, int position, long id) {
             for(int i = 0;i<selectingList.size();i++){
                 playlists.get(position).addToList(selectingList.get(i).id);
@@ -408,11 +391,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private AdapterView.OnItemClickListener albumAddToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
+    private AdapterView.OnItemClickListener addToPlaylistMessageClickedHandler = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView parent, View v, int position, long id) {
-            for(int i = 0;i<selectingList.size();i++){
-                playlists.get(position).addToList(selectingList.get(i).id);
-            }
+            playlists.get(position).addToList(playingList.get(playingPosition).id);
+            setPlayer();
+            updateTitle();
+
             //プレイリストを保存
             try {
                 FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
@@ -420,24 +404,38 @@ public class MainActivity extends AppCompatActivity {
                 fos.close();
             }catch (Exception e){
             }
-
-            setListToAlbums();
         }
     };
 
-    private AdapterView.OnItemLongClickListener playlistsMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
+    private AdapterView.OnItemLongClickListener removeFromPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
         public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
-            playlists.get(position).clearList();
+            playlists.get(currentPlaylistNum).removeFromList(position);
+
+
+            //selectingListを初期化
+            selectingList.clear();
+            for (int i = 0; i < mItems.size(); i++) {
+                if (playlists.get(currentPlaylistNum).ids.contains(mItems.get(i).id)) {
+                    selectingList.add(mItems.get(i));
+                }
+            }
+
+            setListToCurentList();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             //プレイリストを保存
             try {
-                FileOutputStream fos = openFileOutput("Playlist"+position, Context.MODE_PRIVATE);
-                fos.write(playlists.get(position).getByteData());
+
+                FileOutputStream fos = openFileOutput("Playlist"+currentPlaylistNum, Context.MODE_PRIVATE);
+                fos.write(playlists.get(currentPlaylistNum).getByteData());
                 fos.close();
             }catch (Exception e){
             }
             return true;
         }
     };
+
+
+
 
     private void updateTitle() {
         final TextView title = findViewById(R.id.playingTitle);
@@ -528,6 +526,7 @@ public class MainActivity extends AppCompatActivity {
         add.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 setListToAddToPlaylist();
+                listView.setOnItemClickListener(addToPlaylistMessageClickedHandler);
             }
         });
 
@@ -670,14 +669,9 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 if (playerMode) {
-                    setContentView(R.layout.activity_main);
-                    setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                    listView = findViewById(R.id.listView);
-                    adapter = new CustomAdapter(getApplicationContext(), R.layout.textview, playingList);
-                    listView.setAdapter(adapter);
-                    listView.setOnItemClickListener(mMessageClickedHandler);
-                    listView.setSelectionFromTop(playingPosition, 0);
+                    selectingList.clear();
+                    selectingList.addAll(playingList);
+                    setListToCurentList();
                     playerMode = false;
                 } else {
                     switch (selectedList){
@@ -695,6 +689,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.reset:
+                //randomA;;
                 try {
                     mediaPlayer.release();
                 } catch (Exception e) {
@@ -704,19 +699,11 @@ public class MainActivity extends AppCompatActivity {
                 Collections.shuffle(playingList);
                 selectingList.clear();
                 selectingList.addAll(playingList);
-                setContentView(R.layout.activity_main);
                 playingPosition = 0;
-                setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                listView = findViewById(R.id.listView);
-                adapter = new CustomAdapter(getApplicationContext(), R.layout.textview, playingList);
-                listView.setAdapter(adapter);
-                listView.setOnItemClickListener(mMessageClickedHandler);
-                listView.setSelectionFromTop(playingPosition, 0);
-
+                setListToCurentList();
                 initMediaPlayer();
                 mediaPlayer.start();
-
+                selectedList = RANDOM_SELECTED;
                 return true;
             case R.id.artistsButton:
                 selectiongPosition = 0;

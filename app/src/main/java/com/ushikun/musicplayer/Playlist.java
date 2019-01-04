@@ -29,6 +29,9 @@ public class Playlist {
         ids.clear();
     }
 
+    void removeFromList(int position){
+        ids.remove(position);
+    }
    byte[] getByteData(){
         byte[] bytes = new byte[ids.size()*2];
        for(int i = 0;i<ids.size();i++) {
