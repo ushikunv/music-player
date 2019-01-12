@@ -116,9 +116,13 @@ public class MainActivity extends AppCompatActivity {
             Collections.sort(artists);
             Collections.sort(albums);
 
-            setListToArtists();
-
+            selectingList.addAll(playingList);
+            playingPosition = 0;
             initMediaPlayer();
+            setPlayer();
+            updateTitle();
+            mediaPlayer.start();
+
             firstOnCreateBool = false;
         }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -201,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
                         //リストの表示を新しいselectingListに変更
                         setListToCurentList();
                         //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-                        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                         selectiongPosition = position;
             }
         });
@@ -244,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
                 setListToCurentList();
 
                 //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 selectiongPosition = position;
             }
         });
@@ -286,8 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 currentPlaylistNum=position;
                 //リストの表示を新しいselectingListに変更
                 setListToCurentList();
-                //artistから曲へひとつ深い階層にいくので戻るボタンを表示
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
             }
         });
         //長押しでプレイリストを初期化
@@ -333,12 +334,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Collections.shuffle(selectingList);
                 setListToCurentList();
-                if(! (selectedList==RANDOM_SELECTED)) {
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                }
             }
         });
         shuffle.setVisibility(View.VISIBLE);
+        if(! (selectedList==RANDOM_SELECTED)) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
     }
 
 
@@ -491,6 +492,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.player);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         final Button play = findViewById(R.id.play);
         play.setOnClickListener(new View.OnClickListener() {
@@ -689,6 +691,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.reset:
+                selectedList = RANDOM_SELECTED;
                 //randomA;;
                 try {
                     mediaPlayer.release();
@@ -700,25 +703,25 @@ public class MainActivity extends AppCompatActivity {
                 selectingList.clear();
                 selectingList.addAll(playingList);
                 playingPosition = 0;
-                setListToCurentList();
                 initMediaPlayer();
+                setPlayer();
+                updateTitle();
                 mediaPlayer.start();
-                selectedList = RANDOM_SELECTED;
                 return true;
             case R.id.artistsButton:
+                selectedList = ARTISTS_SELECTED;
                 selectiongPosition = 0;
                 setListToArtists();
-                selectedList = ARTISTS_SELECTED;
                 return true;
             case R.id.albumsButton:
+                selectedList = ALBUMS_SELECTED;
                 selectiongPosition = 0;
                 setListToAlbums();
-                selectedList = ALBUMS_SELECTED;
                 return true;
             case R.id.playlistsButton:
+                selectedList = PLAYLIST_SELECTED;
                 selectiongPosition = 0;
                 setListToPlaylists();
-                selectedList = PLAYLIST_SELECTED;
                 return true;
             case R.id.currentPlaying:
                 setPlayer();
