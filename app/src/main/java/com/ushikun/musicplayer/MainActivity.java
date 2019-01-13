@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -42,8 +43,6 @@ public class MainActivity extends AppCompatActivity {
     List<MusicItem> playingList;
     List<MusicItem> selectingList;
     ListView listView;
-    BaseAdapter baseAdapter;
-    ListView listView2;
     CustomAdapter adapter;
     CustomAdapterArtists adapterArtists;
     CustomAdapterPlaylist adapterPlaylists;
@@ -52,10 +51,9 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer mediaPlayer;
     int playingTimePosition;
     boolean playerMode = false;
-    boolean randomPlayMode = false;
     final Handler mSeekbarUpdateHandler = new Handler();
     Runnable mUpdateSeekbar;
-    int selectedList = 0;
+    int selectedList = 3;
     public static final int ARTISTS_SELECTED = 0;
     public static final int ALBUMS_SELECTED = 1;
     public static final int PLAYLIST_SELECTED = 2;
@@ -142,9 +140,9 @@ public class MainActivity extends AppCompatActivity {
                         mediaPlayer.start();
                         setPlayer();
                         updateTitle();
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     }
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 } else if (intent.getAction() == Intent.ACTION_POWER_DISCONNECTED) {
                     playingTimePosition = mediaPlayer.getCurrentPosition();
                     mediaPlayer.release();
@@ -204,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         //リストの表示を新しいselectingListに変更
                         setListToCurentList();
-                        //artistから曲へひとつ深い階層にいくので戻るボタンを表示
+
                         selectiongPosition = position;
             }
         });
@@ -246,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
                 //リストの表示を新しいselectingListに変更
                 setListToCurentList();
 
-                //artistから曲へひとつ深い階層にいくので戻るボタンを表示
                 selectiongPosition = position;
             }
         });
@@ -609,9 +606,42 @@ public class MainActivity extends AppCompatActivity {
                 // result of the request.
             }
         }
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WAKE_LOCK)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WAKE_LOCK)) {
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WAKE_LOCK},
+                        0);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
+
+
+
     }
 
     public void playNext() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "MyApp::MyWakelockTag");
+        wakeLock.acquire();
+
         try {
             mediaPlayer.release();
             mediaPlayer = new MediaPlayer();
@@ -633,6 +663,7 @@ public class MainActivity extends AppCompatActivity {
             updateTitle();
         } catch (Exception e) {
         }
+        wakeLock.release();
 
     }
 
