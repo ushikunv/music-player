@@ -412,12 +412,13 @@ public class MainActivity extends AppCompatActivity {
     private AdapterView.OnItemLongClickListener removeFromPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
         public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
 
-            //selectingListを初期化
+            //選択された項目をplaylistとselectingListから消す
             playlists.get(currentPlaylistNum).removeFromListById(selectingList.get(position).id);
             selectingList.remove(position);
 
             setListToCurentList();
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
             //プレイリストを保存
             try {
                 FileOutputStream fos = openFileOutput("Playlist"+currentPlaylistNum, Context.MODE_PRIVATE);
