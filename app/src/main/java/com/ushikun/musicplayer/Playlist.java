@@ -32,6 +32,16 @@ public class Playlist {
     void removeFromList(int position){
         ids.remove(position);
     }
+
+    void removeFromListById(long id){
+        for(int i=0;i<ids.size();i++){
+            if(ids.get(i)==id){
+                ids.remove(i);
+                break;
+            }
+        }
+    }
+
    byte[] getByteData(){
         byte[] bytes = new byte[ids.size()*2];
        for(int i = 0;i<ids.size();i++) {

@@ -384,8 +384,12 @@ public class MainActivity extends AppCompatActivity {
                 fos.close();
             }catch (Exception e){
             }
-
+        if(selectedList == ARTISTS_SELECTED){
             setListToArtists();
+        }else{
+            setListToAlbums();
+        }
+
         }
     };
 
@@ -407,22 +411,15 @@ public class MainActivity extends AppCompatActivity {
 
     private AdapterView.OnItemLongClickListener removeFromPlaylistMessageLongClickedHandler = new AdapterView.OnItemLongClickListener() {
         public boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
-            playlists.get(currentPlaylistNum).removeFromList(position);
-
 
             //selectingListを初期化
-            selectingList.clear();
-            for (int i = 0; i < mItems.size(); i++) {
-                if (playlists.get(currentPlaylistNum).ids.contains(mItems.get(i).id)) {
-                    selectingList.add(mItems.get(i));
-                }
-            }
+            playlists.get(currentPlaylistNum).removeFromListById(selectingList.get(position).id);
+            selectingList.remove(position);
 
             setListToCurentList();
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             //プレイリストを保存
             try {
-
                 FileOutputStream fos = openFileOutput("Playlist"+currentPlaylistNum, Context.MODE_PRIVATE);
                 fos.write(playlists.get(currentPlaylistNum).getByteData());
                 fos.close();
