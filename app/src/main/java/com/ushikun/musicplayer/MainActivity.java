@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 byte[] bytes = new byte[length];
                 fos.read(bytes);
                 fos.close();
-                playlists.get(0).setByteData(bytes);
+                playlists.get(i).setByteData(bytes);
             } catch (Exception e) {
             }
         }
